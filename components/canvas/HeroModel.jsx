@@ -6,8 +6,12 @@ import { Suspense, useRef, useMemo, useState, useEffect } from 'react';
 import * as THREE from 'three';
 
 /* ── Coffee Cup with premium PBR materials ── */
-function CoffeeCup() {
+function CoffeeCup({ onLoad }) {
   const { scene, animations } = useGLTF('/models/base_coffee_cup_draco.glb', '/draco/');
+  
+  useEffect(() => {
+    if (onLoad) onLoad();
+  }, [onLoad]);
   const meshRef = useRef(null);
   const { actions } = useAnimations(animations, meshRef);
 
@@ -293,7 +297,7 @@ function CausticGround() {
 }
 
 /* ── Scene wrapper with gentle bob ── */
-function SceneContent() {
+function SceneContent({ onLoad }) {
   const groupRef = useRef(null);
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
@@ -307,7 +311,7 @@ function SceneContent() {
     <group ref={groupRef} position={[0, -0.45, 0]}>
       <Suspense fallback={null}>
         <Center scale={1.9}>
-          <CoffeeCup />
+          <CoffeeCup onLoad={onLoad} />
           <CoffeeLiquid />
           <LatteArt />
         </Center>
@@ -320,67 +324,123 @@ function SceneContent() {
 }
 
 export default function HeroModel() {
+  const [shouldRender, setShouldRender] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [modelLoaded, setModelLoaded] = useState(false);
+
+  useEffect(() => {
+    // Delay rendering until the preloader finishes (3.4 seconds)
+    const timer = setTimeout(() => {
+      setShouldRender(true);
+      setTimeout(() => setVisible(true), 50);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <Canvas
-      dpr={[1, 1.5]}
-      camera={{ position: [0, 1.5, 5.8], fov: 40 }}
-      shadows={{ type: 'PCFSoftShadowMap' }}
-      gl={{
-        antialias: true,
-        alpha: true,
-        toneMappingExposure: 1.35,
-        outputColorSpace: 'srgb',
-        toneMapping: THREE.ACESFilmicToneMapping,
-      }}
-      style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
-    >
-      {/* Premium lighting rig */}
-      <hemisphereLight skyColor="#FFF5EE" groundColor="#7A5040" intensity={0.9} />
-      <directionalLight
-        position={[5, 8, 5]}
-        intensity={2.5}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-near={0.5}
-        shadow-camera-far={30}
-        shadow-bias={-0.001}
-      />
-      <directionalLight position={[-4, 3, -4]} intensity={1.0} color="#C8702A" />
-      <pointLight position={[2, 1, 3]} intensity={1.2} distance={10} color="#FFD580" />
-      <pointLight position={[-2, 2, -2]} intensity={0.6} distance={8} color="#FF8844" />
-      <spotLight position={[0, 6, 0]} intensity={0.8} angle={0.4} penumbra={0.8} color="#FFF5EE" castShadow />
+    <div style={{
+      width: '100%',
+      height: '100%',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      opacity: visible ? 1 : 0,
+      transition: 'opacity 1.0s ease'
+    }}>
+      {!modelLoaded && shouldRender && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(248, 246, 242, 0.4)',
+          borderRadius: 'inherit',
+          zIndex: 5,
+          pointerEvents: 'none'
+        }}>
+          <style>{`
+            @keyframes heroSpinner {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            border: '2.5px solid rgba(166, 123, 91, 0.2)',
+            borderTop: '2.5px solid #A67B5B',
+            borderRadius: '50%',
+            animation: 'heroSpinner 0.8s linear infinite'
+          }}></div>
+        </div>
+      )}
+      {shouldRender && (
+        <Canvas
+          dpr={[1, 1.5]}
+          camera={{ position: [0, 1.5, 5.8], fov: 40 }}
+          shadows={{ type: 'PCFSoftShadowMap' }}
+          gl={{
+            antialias: true,
+            alpha: true,
+            toneMappingExposure: 1.35,
+            outputColorSpace: 'srgb',
+            toneMapping: THREE.ACESFilmicToneMapping,
+          }}
+          style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+        >
+          {/* Premium lighting rig */}
+          <hemisphereLight skyColor="#FFF5EE" groundColor="#7A5040" intensity={0.9} />
+          <directionalLight
+            position={[5, 8, 5]}
+            intensity={2.5}
+            castShadow
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
+            shadow-camera-near={0.5}
+            shadow-camera-far={30}
+            shadow-bias={-0.001}
+          />
+          <directionalLight position={[-4, 3, -4]} intensity={1.0} color="#C8702A" />
+          <pointLight position={[2, 1, 3]} intensity={1.2} distance={10} color="#FFD580" />
+          <pointLight position={[-2, 2, -2]} intensity={0.6} distance={8} color="#FF8844" />
+          <spotLight position={[0, 6, 0]} intensity={0.8} angle={0.4} penumbra={0.8} color="#FFF5EE" castShadow />
 
-      {/* Environment map for reflections */}
-      <Environment preset="apartment" environmentIntensity={0.6} />
+          {/* Environment map for reflections */}
+          <Environment preset="apartment" environmentIntensity={0.6} />
 
-      {/* Contact shadow for grounding */}
-      <ContactShadows
-        frames={1}
-        resolution={512}
-        position={[0, -0.95, 0]}
-        opacity={0.55}
-        scale={5}
-        blur={2.5}
-        far={2}
-        color="#3A1A08"
-      />
+          {/* Contact shadow for grounding */}
+          <ContactShadows
+            frames={1}
+            resolution={512}
+            position={[0, -0.95, 0]}
+            opacity={0.55}
+            scale={5}
+            blur={2.5}
+            far={2}
+            color="#3A1A08"
+          />
 
-      <CausticGround />
-      <SceneContent />
-      <OrbitingBeans />
+          <CausticGround />
+          <SceneContent onLoad={() => setModelLoaded(true)} />
+          <OrbitingBeans />
 
-      <OrbitControls
-        enablePan={false}
-        enableZoom={false}
-        autoRotate
-        autoRotateSpeed={1.2}
-        enableDamping
-        dampingFactor={0.04}
-        target={[0, 0.2, 0]}
-        minPolarAngle={Math.PI * 0.25}
-        maxPolarAngle={Math.PI * 0.65}
-      />
-    </Canvas>
+          <OrbitControls
+            enablePan={false}
+            enableZoom={false}
+            autoRotate
+            autoRotateSpeed={1.2}
+            enableDamping
+            dampingFactor={0.04}
+            target={[0, 0.2, 0]}
+            minPolarAngle={Math.PI * 0.25}
+            maxPolarAngle={Math.PI * 0.65}
+          />
+        </Canvas>
+      )}
+    </div>
   );
 }

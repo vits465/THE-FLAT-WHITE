@@ -684,33 +684,56 @@ ul, ol { list-style: none; }
 /* ── 9. PARALLAX BAND ── */
 .parallax-band {
   overflow: hidden;
-  background: var(--accent);
-  border-top: 1px solid rgba(44,36,32,.1);
-  border-bottom: 1px solid rgba(44,36,32,.1);
-  padding: 2rem 0;
+  background: #12100E; /* Dark coffee bean charcoal */
+  border-top: 1px solid rgba(166, 123, 91, 0.25);
+  border-bottom: 1px solid rgba(166, 123, 91, 0.25);
+  padding: 2.2rem 0;
+  position: relative;
+}
+
+.parallax-band::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(166, 123, 91, 0.05), transparent);
+  pointer-events: none;
 }
 
 .parallax-band__track {
   display: flex;
   align-items: center;
-  gap: 3rem;
+  gap: 4rem;
   white-space: nowrap;
   will-change: transform;
 }
 
 .parallax-band__track span {
   font-family: var(--font-accent);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: rgba(255,255,255,.45);
-  letter-spacing: .18em;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #F5E6D3; /* Warm cream */
+  letter-spacing: 0.22em;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+}
+
+.parallax-band__track span.outlined {
+  color: transparent !important;
+  -webkit-text-stroke: 1px rgba(245, 230, 211, 0.45);
 }
 
 .parallax-band__dot {
-  color: rgba(255,255,255,.7) !important;
-  font-size: 1rem !important;
-  opacity: .7;
+  color: #A67B5B !important; /* Gold/copper accent */
+  font-size: 1.2rem !important;
+  opacity: 0.8;
+  display: inline-block;
+}
+
+.band-icon {
+  color: #A67B5B;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* ── 10. SHOWCASE ── */

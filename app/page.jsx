@@ -7,12 +7,18 @@ import Hero from '@/components/Hero';
 import Showcase from '@/components/Showcase';
 import Footer from '@/components/Footer';
 import Animations from '@/components/Animations';
-import ScrollCanvas from '@/components/canvas/ScrollCanvas';
+import ShowcaseModel from '@/components/canvas/ShowcaseModel';
 import FaqAccordion from '@/components/FaqAccordion';
 import shopInside from '@/img/shop_inside.jpg';
 
 export default function Home() {
   useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('SW registered:', reg.scope))
+        .catch((err) => console.error('SW registration failed:', err));
+    }
+
     if (window.matchMedia('(pointer: coarse)').matches) return;
     const cursor = document.getElementById('cursor');
     if (!cursor) return;
@@ -48,7 +54,7 @@ export default function Home() {
     <>
       <Animations />
       <Loader />
-      <ScrollCanvas />
+
 
       {/* Custom cursor */}
       <div className="cursor" id="cursor" aria-hidden="true">
@@ -64,10 +70,41 @@ export default function Home() {
         {/* PARALLAX BAND */}
         <section className="parallax-band" aria-hidden="true">
           <div className="parallax-band__track" id="parallaxTrack">
-            {['USE PREMIUM FRESH BEANS','FRESHLY GROUND SPICES','CRAFTED WITH INTENTION','SINGLE ORIGIN BEANS','MICROFOAM PERFECTION','BARISTA CRAFTED'].flatMap((t, i) => [
-              <span key={`t${i}`}>{t}</span>,
-              <span key={`d${i}`} className="parallax-band__dot">✦</span>
-            ])}
+            {[
+              { text: "100% Specialty Arabica", outline: false },
+              { text: "Single Origin Colombia", outline: true },
+              { text: "Notes of Citrus & Cocoa", outline: false },
+              { text: "Barista Crafted Signature", outline: true },
+              { text: "Ethically Sourced Beans", outline: false },
+              { text: "Microfoam Latte Art", outline: true },
+              { text: "Freshly Roasted Weekly", outline: false }
+            ].flatMap((item, i) => {
+              const iconIndex = i % 3;
+              let iconNode;
+              if (iconIndex === 0) {
+                iconNode = (
+                  <svg className="band-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 15px' }}>
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                  </svg>
+                );
+              } else if (iconIndex === 1) {
+                iconNode = (
+                  <svg className="band-icon" width="16" height="18" viewBox="0 0 20 28" fill="none" style={{ margin: '0 15px' }}>
+                    <path d="M10,2 C14.4,2 17.6,7.6 17.6,14 C17.6,20.4 14.4,26 10,26 C5.6,26 2.4,20.4 2.4,14 C2.4,7.6 5.6,2 10,2 Z" fill="currentColor" opacity=".8"/>
+                    <path d="M10,4 Q8,10 9,14 Q8,18 10,24" stroke="#12100E" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+                  </svg>
+                );
+              } else {
+                iconNode = <span className="parallax-band__dot" style={{ margin: '0 20px' }}>✦</span>;
+              }
+
+              return [
+                <span key={`t1-${i}`} className={item.outline ? 'outlined' : ''}>{item.text}</span>,
+                <span key={`i1-${i}`}>{iconNode}</span>,
+                <span key={`t2-${i}`} className={!item.outline ? 'outlined' : ''}>{item.text}</span>,
+                <span key={`i2-${i}`}>{iconNode}</span>
+              ];
+            })}
           </div>
         </section>
 
@@ -77,13 +114,9 @@ export default function Home() {
         <section className="about" id="about" aria-label="Our story">
           <div className="section-bg-text" aria-hidden="true">STORY</div>
           <div className="about__grid">
-            <div className="about__image-wrap">
-              <div className="about__image-mask" id="aboutImageMask">
-                <img
-                  src={shopInside.src}
-                  alt="The Flat White coffee shop — warm interior"
-                  loading="lazy" width="700" height="800" id="aboutImg"
-                />
+            <div className="about__image-wrap" style={{ minHeight: '600px', position: 'relative' }}>
+              <div className="about__image-mask" id="aboutImageMask" style={{ width: '100%', height: '600px', position: 'relative', background: '#F8F6F2', borderRadius: 'var(--radius-xl)' }}>
+                <ShowcaseModel modelUrl="/models/coffee_maker_low_poly_draco.glb" scaleAdjust={0.8} yOffset={-0.2} />
               </div>
               <div className="about__image-deco" aria-hidden="true"></div>
               <div className="about__image-stat" aria-hidden="true">
@@ -125,12 +158,8 @@ export default function Home() {
         <section className="secret-sauce" id="secretSauce" aria-label="Our secret sauce">
           <div className="secret-sauce__bg-text" aria-hidden="true">SECRET</div>
           <div className="secret-sauce__inner">
-            <div className="secret-sauce__cup" id="sauceCup">
-              <img
-                src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=500&h=500&fit=crop&q=85&auto=format"
-                alt="Espresso shot — our secret sauce"
-                loading="lazy" width="500" height="500"
-              />
+            <div className="secret-sauce__cup" id="sauceCup" style={{ height: '480px', position: 'relative', background: '#F8F6F2', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
+              <ShowcaseModel modelUrl="/models/canarian_cafe_-_coffee_machine_draco.glb" scaleAdjust={0.7} yOffset={-0.1} />
               <div className="secret-sauce__label">Secret Sauce ✦</div>
             </div>
             <div className="secret-sauce__content">

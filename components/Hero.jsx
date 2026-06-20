@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import HeroModel from './canvas/HeroModel';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -100,8 +101,8 @@ export default function Hero() {
         </div>
 
         <div className="hero__visual hero__visual--3d" id="heroVisual">
-          <div className="hero__canvas-wrap">
-            {/* Persistent 3D canvas overlays here */}
+          <div className="hero__canvas-wrap" style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <HeroModel />
           </div>
           <div className="hero__model-tag" id="modelTag">
             <span className="hero__model-tag-dot"></span>

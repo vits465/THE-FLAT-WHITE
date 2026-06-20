@@ -2,10 +2,10 @@
 
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, OrbitControls, Float, ContactShadows, Environment, useAnimations } from '@react-three/drei';
-import { Suspense, useMemo, useRef, useEffect } from 'react';
+import { Suspense, useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 
-function Model({ url, scaleAdjust, yOffset }) {
+function Model({ url, scaleAdjust, yOffset, onLoad }) {
   const { scene, animations } = useGLTF(url, '/draco/');
   const ref = useRef(null);
   const { actions } = useAnimations(animations, ref);
@@ -17,6 +17,10 @@ function Model({ url, scaleAdjust, yOffset }) {
       });
     }
   }, [actions]);
+
+  useEffect(() => {
+    if (onLoad) onLoad();
+  }, [onLoad]);
 
   const { scale, position } = useMemo(() => {
     const box = new THREE.Box3().setFromObject(scene);
@@ -109,57 +113,126 @@ function MiniSteam() {
 }
 
 export default function ShowcaseModel({ modelUrl, scaleAdjust = 1.0, yOffset = 0 }) {
+  const containerRef = useRef(null);
+  const [inView, setInView] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [modelLoaded, setModelLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    let timer;
+    const observer = new IntersectionObserver(([entry]) => {
+      setInView(entry.isIntersecting);
+      if (entry.isIntersecting) {
+        timer = setTimeout(() => setVisible(true), 50);
+      } else {
+        setVisible(false);
+      }
+    }, { rootMargin: '150px' });
+    observer.observe(containerRef.current);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, []);
+
   return (
-    <Canvas
-      dpr={[1, 1.5]}
-      camera={{ position: [0, 1.2, 4.8], fov: 36 }}
-      shadows={{ type: 'PCFSoftShadowMap' }}
-      gl={{
-        antialias: true,
-        alpha: true,
-        toneMappingExposure: 1.4,
-        outputColorSpace: 'srgb',
-        toneMapping: THREE.ACESFilmicToneMapping,
+    <div 
+      ref={containerRef} 
+      style={{ 
+        width: '100%', 
+        height: '100%', 
+        position: 'absolute', 
+        top: 0, 
+        left: 0,
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.6s ease'
       }}
-      style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
     >
-      <hemisphereLight skyColor="#FFF5EE" groundColor="#6B4030" intensity={1.0} />
-      <directionalLight position={[4, 6, 4]} intensity={2.8} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
-      <directionalLight position={[-3, 2, -3]} intensity={1.1} color="#C8702A" />
-      <pointLight position={[0, 3, 2]} intensity={1.0} color="#FFE4C4" />
-      <spotLight position={[0, 5, 2]} angle={0.5} penumbra={0.9} intensity={1.5} castShadow color="#FFF5EE" />
+      {!modelLoaded && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(248, 246, 242, 0.4)',
+          borderRadius: 'inherit',
+          zIndex: 5,
+          pointerEvents: 'none'
+        }}>
+          <style>{`
+            @keyframes swSpinner {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+          <div style={{
+            width: '28px',
+            height: '28px',
+            border: '2.5px solid rgba(166, 123, 91, 0.2)',
+            borderTop: '2.5px solid #A67B5B',
+            borderRadius: '50%',
+            animation: 'swSpinner 0.8s linear infinite'
+          }}></div>
+        </div>
+      )}
+      {inView && (
+        <Canvas
+          dpr={[1, 1.5]}
+          camera={{ position: [0, 1.2, 4.8], fov: 36 }}
+          shadows={{ type: 'PCFSoftShadowMap' }}
+          gl={{
+            antialias: true,
+            alpha: true,
+            toneMappingExposure: 1.4,
+            outputColorSpace: 'srgb',
+            toneMapping: THREE.ACESFilmicToneMapping,
+          }}
+          style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+        >
+          <hemisphereLight skyColor="#FFF5EE" groundColor="#6B4030" intensity={1.0} />
+          <directionalLight position={[4, 6, 4]} intensity={2.8} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
+          <directionalLight position={[-3, 2, -3]} intensity={1.1} color="#C8702A" />
+          <pointLight position={[0, 3, 2]} intensity={1.0} color="#FFE4C4" />
+          <spotLight position={[0, 5, 2]} angle={0.5} penumbra={0.9} intensity={1.5} castShadow color="#FFF5EE" />
 
-      <Environment preset="apartment" environmentIntensity={0.8} />
+          <Environment preset="apartment" environmentIntensity={0.8} />
 
-      <ContactShadows
-        frames={1}
-        resolution={512}
-        position={[0, -1.1, 0]}
-        opacity={0.45}
-        scale={4}
-        blur={2}
-        far={2}
-        color="#3A1A08"
-      />
+          <ContactShadows
+            frames={1}
+            resolution={512}
+            position={[0, -1.1, 0]}
+            opacity={0.45}
+            scale={4}
+            blur={2}
+            far={2}
+            color="#3A1A08"
+          />
 
-      <Suspense fallback={null}>
-        <Float speed={1.8} rotationIntensity={0.05} floatIntensity={0.4}>
-          <Model url={modelUrl} scaleAdjust={scaleAdjust} yOffset={yOffset} />
-          <MiniSteam />
-        </Float>
-      </Suspense>
+          <Suspense fallback={null}>
+            <Float speed={1.8} rotationIntensity={0.05} floatIntensity={0.4}>
+              <Model url={modelUrl} scaleAdjust={scaleAdjust} yOffset={yOffset} onLoad={() => setModelLoaded(true)} />
+              <MiniSteam />
+            </Float>
+          </Suspense>
 
-      <OrbitControls
-        enablePan={false}
-        enableZoom={false}
-        autoRotate
-        autoRotateSpeed={2.5}
-        enableDamping
-        dampingFactor={0.05}
-        target={[0, 0, 0]}
-        minPolarAngle={Math.PI * 0.2}
-        maxPolarAngle={Math.PI * 0.7}
-      />
-    </Canvas>
+          <OrbitControls
+            enablePan={false}
+            enableZoom={false}
+            autoRotate
+            autoRotateSpeed={2.5}
+            enableDamping
+            dampingFactor={0.05}
+            target={[0, 0, 0]}
+            minPolarAngle={Math.PI * 0.2}
+            maxPolarAngle={Math.PI * 0.7}
+          />
+        </Canvas>
+      )}
+    </div>
   );
 }

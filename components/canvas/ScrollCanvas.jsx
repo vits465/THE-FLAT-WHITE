@@ -70,6 +70,51 @@ function CoffeeCup() {
   return <primitive object={scene} />;
 }
 
+/* ── Coffee Maker (About Section) ── */
+function CoffeeMaker() {
+  const { scene } = useGLTF('/models/coffee_maker_low_poly_draco.glb', '/draco/');
+  useMemo(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material) {
+          child.material.envMapIntensity = 2.2;
+          child.material.roughness = 0.3;
+          child.material.needsUpdate = true;
+        }
+      }
+    });
+  }, [scene]);
+  return <primitive object={scene} />;
+}
+
+/* ── Cartoon Coffee Cup (Menu Section) ── */
+function MenuCup() {
+  const { scene } = useGLTF('/models/catoon_coffe_draco.glb', '/draco/');
+  useMemo(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.material) {
+          child.material.envMapIntensity = 2.2;
+          child.material.roughness = 0.25;
+          child.material.needsUpdate = true;
+        }
+      }
+    });
+  }, [scene]);
+  return <primitive object={scene} />;
+}
+
+/* Preload models to warm up cache */
+useGLTF.preload('/models/base_coffee_cup_draco.glb', '/draco/');
+useGLTF.preload('/models/moka_pot_draco.glb', '/draco/');
+useGLTF.preload('/models/canarian_cafe_-_coffee_machine_draco.glb', '/draco/');
+useGLTF.preload('/models/coffee_maker_low_poly_draco.glb', '/draco/');
+useGLTF.preload('/models/catoon_coffe_draco.glb', '/draco/');
+
 /* ── Liquid coffee surface inside cup ── */
 function CoffeeLiquid() {
   const liquidRef = useRef(null);
@@ -301,14 +346,20 @@ function SceneContent() {
   const mokaRef = useRef(null);
   const machineRef = useRef(null);
   const cupRef = useRef(null);
+  const makerRef = useRef(null);
+  const menuCupRef = useRef(null);
 
   const mokaOpacity = useRef({ value: 0.0 });
   const machineOpacity = useRef({ value: 0.0 });
-  const cupOpacity = useRef({ value: 0.0 }); // Starts hidden, animated in by intro timeline
+  const cupOpacity = useRef({ value: 0.0 });
+  const makerOpacity = useRef({ value: 0.0 });
+  const menuCupOpacity = useRef({ value: 0.0 });
 
   const mokaMaterials = useRef([]);
   const machineMaterials = useRef([]);
   const cupMaterials = useRef([]);
+  const makerMaterials = useRef([]);
+  const menuCupMaterials = useRef([]);
 
   const getMaterials = (group, cacheRef) => {
     if (cacheRef.current.length > 0) return cacheRef.current;
@@ -341,14 +392,21 @@ function SceneContent() {
     });
   };
 
-  useFrame(() => {
+  useFrame((state) => {
     applyGroupOpacity(mokaRef.current, mokaOpacity.current.value, mokaMaterials);
     applyGroupOpacity(machineRef.current, machineOpacity.current.value, machineMaterials);
     applyGroupOpacity(cupRef.current, cupOpacity.current.value, cupMaterials);
+    applyGroupOpacity(makerRef.current, makerOpacity.current.value, makerMaterials);
+    applyGroupOpacity(menuCupRef.current, menuCupOpacity.current.value, menuCupMaterials);
+
+    // Cinematic camera sway (idle parallax)
+    const t = state.clock.getElapsedTime();
+    state.camera.position.x = THREE.MathUtils.lerp(state.camera.position.x, Math.sin(t * 0.4) * 0.1, 0.05);
+    state.camera.position.y = THREE.MathUtils.lerp(state.camera.position.y, 1.2 + Math.cos(t * 0.3) * 0.08, 0.05);
   });
 
   useEffect(() => {
-    if (!mokaRef.current || !machineRef.current || !cupRef.current) return;
+    if (!mokaRef.current || !machineRef.current || !cupRef.current || !makerRef.current || !menuCupRef.current) return;
 
     const ctx = gsap.context(() => {
       let mm = gsap.matchMedia();
@@ -359,7 +417,7 @@ function SceneContent() {
       }, (context) => {
         const { isDesktop } = context.conditions;
 
-        // Configuration states
+        // Configuration positions for cinematic section layouts
         const cupHero = isDesktop 
           ? { x: 1.25, y: -0.15, scale: 0.9 } 
           : { x: 0, y: -0.35, scale: 0.7 };
@@ -368,108 +426,149 @@ function SceneContent() {
           ? { x: 0, y: 0.05, scale: 1.0 }
           : { x: 0, y: 0.05, scale: 0.75 };
 
+        const makerAbout = isDesktop
+          ? { x: 1.3, y: -0.1, scale: 0.8 }
+          : { x: 0, y: -0.2, scale: 0.6 };
+
         const machineSauce = isDesktop 
           ? { x: -1.25, y: -0.15, scale: 0.85 } 
           : { x: 0, y: -0.5, scale: 0.65 };
 
+        const menuCupSpecial = isDesktop
+          ? { x: 1.25, y: -0.15, scale: 0.95 }
+          : { x: 0, y: -0.3, scale: 0.75 };
+
         // 1. Initialize Starting Positions and Opacities
-        gsap.set(cupRef.current.position, { x: cupHero.x + 0.8, y: cupHero.y - 0.2, z: -1.0 });
-        gsap.set(cupRef.current.scale, { x: 0.1, y: 0.1, z: 0.1 });
-        gsap.set(cupRef.current.rotation, { x: 0.35, y: Math.PI * 1.3, z: -0.1 });
+        // Cup (Hero) starts off-screen (above right)
+        gsap.set(cupRef.current.position, { x: cupHero.x + 1.2, y: cupHero.y - 0.5, z: -1.5 });
+        gsap.set(cupRef.current.scale, { x: 0.01, y: 0.01, z: 0.01 });
+        gsap.set(cupRef.current.rotation, { x: 0.4, y: Math.PI * 1.5, z: -0.2 });
         cupOpacity.current.value = 0.0;
         
+        // Moka starts hidden
         gsap.set(mokaRef.current.position, { x: 0, y: -3.0, z: 0 });
-        gsap.set(mokaRef.current.scale, { x: 0.1, y: 0.1, z: 0.1 });
+        gsap.set(mokaRef.current.scale, { x: 0.01, y: 0.01, z: 0.01 });
         mokaOpacity.current.value = 0.0;
+
+        // Maker starts hidden
+        gsap.set(makerRef.current.position, { x: 0, y: -3.0, z: 0 });
+        gsap.set(makerRef.current.scale, { x: 0.01, y: 0.01, z: 0.01 });
+        makerOpacity.current.value = 0.0;
         
+        // Machine starts hidden
         gsap.set(machineRef.current.position, { x: 0, y: -3.0, z: 0 });
-        gsap.set(machineRef.current.scale, { x: 0.1, y: 0.1, z: 0.1 });
+        gsap.set(machineRef.current.scale, { x: 0.01, y: 0.01, z: 0.01 });
         machineOpacity.current.value = 0.0;
+
+        // MenuCup starts hidden
+        gsap.set(menuCupRef.current.position, { x: 0, y: -3.0, z: 0 });
+        gsap.set(menuCupRef.current.scale, { x: 0.01, y: 0.01, z: 0.01 });
+        menuCupOpacity.current.value = 0.0;
 
         gsap.set(".persistent-canvas-container", { opacity: 1, visibility: 'visible' });
 
-        // Intro entrance animation for Coffee Cup (synchronous with loader exit)
+        // Intro entrance animation for Coffee Cup
         gsap.timeline({ delay: 3.3 })
-          .to(cupRef.current.position, { x: cupHero.x, y: cupHero.y, z: 0, duration: 0.9, ease: "power2.out" }, 0)
-          .to(cupRef.current.scale, { x: cupHero.scale, y: cupHero.scale, z: cupHero.scale, duration: 0.9, ease: "power2.out" }, 0)
+          .to(cupRef.current.position, { x: cupHero.x, y: cupHero.y, z: 0, duration: 1.2, ease: "power3.out" }, 0)
+          .to(cupRef.current.scale, { x: cupHero.scale, y: cupHero.scale, z: cupHero.scale, duration: 1.2, ease: "power3.out" }, 0)
+          .to(cupRef.current.rotation, { x: 0.2, y: Math.PI * 0.45, z: 0, duration: 1.2, ease: "power3.out" }, 0)
           .to(cupOpacity.current, { value: 1.0, duration: 0.8, ease: "power2.out" }, 0);
 
-        // 2. Timeline 1: Scroll from Hero to Showcase (Coffee Cup exits, Moka Pot enters, presents & exits before cards)
+        // ── Timeline 1: Hero to Showcase ──
         const tl1 = gsap.timeline({
           scrollTrigger: {
             trigger: "#showcase",
             start: "top bottom",
-            end: "bottom top",
+            end: "top top",
             scrub: 1.2,
           }
         });
 
-        tl1.addLabel("start", 0)
-           .addLabel("presentMoka", 0.25)
-           .addLabel("exitMoka", 0.5)
-           .addLabel("end", 0.85);
+        tl1.to(cupRef.current.position, { x: -1.2, y: 1.2, z: -1.0, ease: "power2.inOut" }, 0)
+           .to(cupRef.current.scale, { x: 0.01, y: 0.01, z: 0.01, ease: "power2.inOut" }, 0)
+           .to(cupRef.current.rotation, { x: 0.5, y: Math.PI * 2.2, z: 0.2, ease: "power2.inOut" }, 0)
+           .to(cupOpacity.current, { value: 0.0, ease: "power2.inOut" }, 0);
 
-        // Coffee Cup exits (with smooth spiral slide-up and fade-out)
-        tl1.to(cupRef.current.position, { x: 0.6, y: 0.8, z: -1.0, ease: "power2.inOut" }, "start")
-           .to(cupRef.current.scale, { x: 0.05, y: 0.05, z: 0.05, ease: "power2.inOut" }, "start")
-           .to(cupOpacity.current, { value: 0.0, ease: "power2.inOut" }, "start")
-           .to(cupRef.current.rotation, { x: 0.1, y: Math.PI * 1.8, z: 0.1, ease: "power2.inOut" }, "start");
+        tl1.to(mokaRef.current.position, { x: mokaShowcase.x, y: mokaShowcase.y, z: 0, ease: "power3.out" }, 0.2)
+           .to(mokaRef.current.scale, { x: mokaShowcase.scale, y: mokaShowcase.scale, z: mokaShowcase.scale, ease: "power3.out" }, 0.2)
+           .to(mokaRef.current.rotation, { x: 0.1, y: Math.PI * 1.5, z: 0.05, ease: "power3.out" }, 0.2)
+           .to(mokaOpacity.current, { value: 1.0, ease: "power2.out" }, 0.2);
 
-        // Moka Pot enters and presents (doing a smooth spinning reveal)
-        tl1.to(mokaRef.current.position, { x: mokaShowcase.x, y: mokaShowcase.y, z: 0, ease: "power3.out" }, "start")
-           .to(mokaRef.current.scale, { x: mokaShowcase.scale, y: mokaShowcase.scale, z: mokaShowcase.scale, ease: "power3.out" }, "start")
-           .to(mokaOpacity.current, { value: 1.0, ease: "power2.out" }, "start")
-           .fromTo(mokaRef.current.rotation, { x: -0.2, y: -Math.PI * 0.5 }, { x: 0, y: Math.PI * 1.2, ease: "power2.out" }, "start");
-
-        // Moka Pot exits before showcase cards are active (recedes into depth)
-        tl1.to(mokaRef.current.position, { y: 2.2, z: -1.5, ease: "power2.in" }, "exitMoka")
-           .to(mokaRef.current.scale, { x: 0.05, y: 0.05, z: 0.05, ease: "power2.in" }, "exitMoka")
-           .to(mokaOpacity.current, { value: 0.0, ease: "power2.in" }, "exitMoka")
-           .to(mokaRef.current.rotation, { x: 0.2, y: Math.PI * 2.0, ease: "power2.in" }, "exitMoka");
-
-        // 3. Timeline 2: Scroll through Secret Sauce (Coffee Machine enters, presents, glides to left, then exits)
+        // ── Timeline 2: Showcase to About ──
         const tl2 = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#about",
+            start: "top bottom",
+            end: "top top",
+            scrub: 1.2,
+          }
+        });
+
+        tl2.to(mokaRef.current.position, { x: -1.0, y: -1.8, z: -0.8, ease: "power2.inOut" }, 0)
+           .to(mokaRef.current.scale, { x: 0.01, y: 0.01, z: 0.01, ease: "power2.inOut" }, 0)
+           .to(mokaRef.current.rotation, { x: -0.2, y: Math.PI * 2.5, z: -0.1, ease: "power2.inOut" }, 0)
+           .to(mokaOpacity.current, { value: 0.0, ease: "power2.inOut" }, 0);
+
+        tl2.to(makerRef.current.position, { x: makerAbout.x, y: makerAbout.y, z: 0, ease: "power3.out" }, 0.2)
+           .to(makerRef.current.scale, { x: makerAbout.scale, y: makerAbout.scale, z: makerAbout.scale, ease: "power3.out" }, 0.2)
+           .to(makerRef.current.rotation, { x: 0.15, y: -Math.PI * 0.4, z: 0, ease: "power3.out" }, 0.2)
+           .to(makerOpacity.current, { value: 1.0, ease: "power2.out" }, 0.2);
+
+        // ── Timeline 3: About to Secret Sauce ──
+        const tl3 = gsap.timeline({
           scrollTrigger: {
             trigger: "#secretSauce",
             start: "top bottom",
-            end: "bottom top",
+            end: "top top",
             scrub: 1.2,
           }
         });
 
-        tl2.addLabel("start", 0)
-           .addLabel("presentMachine", 0.25)
-           .addLabel("glideMachine", 0.45)
-           .addLabel("exitMachine", 0.75)
-           .addLabel("end", 1.0);
+        tl3.to(makerRef.current.position, { x: 1.2, y: 1.5, z: -1.0, ease: "power2.inOut" }, 0)
+           .to(makerRef.current.scale, { x: 0.01, y: 0.01, z: 0.01, ease: "power2.inOut" }, 0)
+           .to(makerRef.current.rotation, { x: 0.3, y: Math.PI * 0.5, z: 0.1, ease: "power2.inOut" }, 0)
+           .to(makerOpacity.current, { value: 0.0, ease: "power2.inOut" }, 0);
 
-        // Coffee Machine enters and presents in center
-        tl2.to(machineRef.current.position, { x: 0, y: 0.1, z: 0, ease: "power3.out" }, "start")
-           .to(machineRef.current.scale, { x: isDesktop ? 0.95 : 0.75, y: isDesktop ? 0.95 : 0.75, z: isDesktop ? 0.95 : 0.75, ease: "power3.out" }, "start")
-           .to(machineOpacity.current, { value: 1.0, ease: "power2.out" }, "start")
-           .fromTo(machineRef.current.rotation, { x: -0.15, y: -Math.PI * 0.3 }, { x: 0, y: Math.PI * 0.4, ease: "power2.out" }, "start");
+        tl3.to(machineRef.current.position, { x: machineSauce.x, y: machineSauce.y, z: 0, ease: "power3.out" }, 0.2)
+           .to(machineRef.current.scale, { x: machineSauce.scale, y: machineSauce.scale, z: machineSauce.scale, ease: "power3.out" }, 0.2)
+           .to(machineRef.current.rotation, { x: 0.05, y: Math.PI * 0.35, z: 0.05, ease: "power3.out" }, 0.2)
+           .to(machineOpacity.current, { value: 1.0, ease: "power2.out" }, 0.2);
 
-        // Coffee Machine glides to its resting place on the left (over `#sauceCup` image column)
-        tl2.to(machineRef.current.position, { x: machineSauce.x, y: machineSauce.y, ease: "power2.inOut" }, "presentMachine")
-           .to(machineRef.current.scale, { x: machineSauce.scale, y: machineSauce.scale, z: machineSauce.scale, ease: "power2.inOut" }, "presentMachine")
-           .to(machineRef.current.rotation, { x: 0.05, y: Math.PI * 0.1, ease: "power2.inOut" }, "presentMachine");
-
-        // Coffee Machine exits before menu section (recedes into depth)
-        tl2.to(machineRef.current.position, { y: -2.5, z: -1.2, ease: "power2.in" }, "exitMachine")
-           .to(machineRef.current.scale, { x: 0.05, y: 0.05, z: 0.05, ease: "power2.in" }, "exitMachine")
-           .to(machineOpacity.current, { value: 0.0, ease: "power2.in" }, "exitMachine")
-           .to(machineRef.current.rotation, { x: -0.1, y: Math.PI * 0.6, ease: "power2.in" }, "exitMachine");
-
-        // 4. Timeline 3: Menu (Fade out canvas container for performance)
-        gsap.timeline({
+        // ── Timeline 4: Secret Sauce to Menu ──
+        const tl4 = gsap.timeline({
           scrollTrigger: {
             trigger: "#menu",
             start: "top bottom",
-            end: "top center",
-            scrub: 1.0,
+            end: "top top",
+            scrub: 1.2,
           }
-        })
-        .to(".persistent-canvas-container", { opacity: 0, visibility: 'hidden', ease: "power1.inOut" });
+        });
+
+        tl4.to(machineRef.current.position, { x: -1.5, y: -2.0, z: -1.2, ease: "power2.inOut" }, 0)
+           .to(machineRef.current.scale, { x: 0.01, y: 0.01, z: 0.01, ease: "power2.inOut" }, 0)
+           .to(machineRef.current.rotation, { x: -0.1, y: Math.PI * 0.8, z: -0.05, ease: "power2.inOut" }, 0)
+           .to(machineOpacity.current, { value: 0.0, ease: "power2.inOut" }, 0);
+
+        tl4.to(menuCupRef.current.position, { x: menuCupSpecial.x, y: menuCupSpecial.y, z: 0, ease: "power3.out" }, 0.2)
+           .to(menuCupRef.current.scale, { x: menuCupSpecial.scale, y: menuCupSpecial.scale, z: menuCupSpecial.scale, ease: "power3.out" }, 0.2)
+           .to(menuCupRef.current.rotation, { x: 0.2, y: Math.PI * 1.6, z: -0.1, ease: "power3.out" }, 0.2)
+           .to(menuCupOpacity.current, { value: 1.0, ease: "power2.out" }, 0.2);
+
+        // ── Timeline 5: Menu to Reviews (Fade out canvas) ──
+        const tl5 = gsap.timeline({
+          scrollTrigger: {
+            trigger: "#reviews",
+            start: "top bottom",
+            end: "top top",
+            scrub: 1.2,
+          }
+        });
+
+        tl5.to(menuCupRef.current.position, { x: 0.8, y: -1.8, z: -0.8, ease: "power2.inOut" }, 0)
+           .to(menuCupRef.current.scale, { x: 0.01, y: 0.01, z: 0.01, ease: "power2.inOut" }, 0)
+           .to(menuCupRef.current.rotation, { x: -0.2, y: Math.PI * 2.2, z: 0.15, ease: "power2.inOut" }, 0)
+           .to(menuCupOpacity.current, { value: 0.0, ease: "power2.inOut" }, 0)
+           .to(".persistent-canvas-container", { opacity: 0, visibility: 'hidden', ease: "power1.inOut" }, 0);
 
       });
     });
@@ -519,6 +618,31 @@ function SceneContent() {
         <SteamParticles count={25} size={0.065} speed={0.4} yStart={0.38} position={[0, 0, 0]} />
         <CausticGround />
         <OrbitingBeans scaleFactor={0.9} />
+      </group>
+
+      {/* Group 4: Coffee Maker (About) */}
+      <group ref={makerRef}>
+        <Float speed={1.3} rotationIntensity={0.08} floatIntensity={0.2}>
+          <Suspense fallback={null}>
+            <Center scale={0.8}>
+              <CoffeeMaker />
+            </Center>
+          </Suspense>
+        </Float>
+        <OrbitingBeans scaleFactor={0.75} />
+      </group>
+
+      {/* Group 5: Menu Coffee Cup (Menu) */}
+      <group ref={menuCupRef}>
+        <Float speed={1.4} rotationIntensity={0.12} floatIntensity={0.22}>
+          <Suspense fallback={null}>
+            <Center scale={1.1}>
+              <MenuCup />
+            </Center>
+          </Suspense>
+        </Float>
+        <SteamParticles count={20} size={0.06} speed={0.5} yStart={0.3} position={[0, 0, 0]} />
+        <OrbitingBeans scaleFactor={0.85} />
       </group>
     </>
   );

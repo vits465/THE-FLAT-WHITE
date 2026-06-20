@@ -58,7 +58,7 @@ export default function Nav() {
       </a>
 
       <nav className="nav__links" id="navLinks" aria-label="Main navigation">
-        {['#home:Home','#about:Story','#showcase:3D','#menu:Menu','#reviews:Reviews','#contact:Visit'].map(s => {
+        {['#home:Home','#about:Story','#showcase:Showcase','#menu:Menu','#reviews:Reviews','#contact:Contact'].map(s => {
           const [href, label] = s.split(':');
           return <a key={href} href={href} className="nav__link">{label}</a>;
         })}
