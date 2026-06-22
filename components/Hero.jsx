@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import HeroModel from './canvas/HeroModel';
@@ -9,9 +9,23 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
   const heroRef = useRef(null);
+  const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const triggers = [];
+
+    // Parallax for video
+    if (videoRef.current) {
+      const videoTrig = ScrollTrigger.create({
+        trigger: heroRef.current,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+        animation: gsap.to(videoRef.current, { y: 150, ease: 'none' })
+      });
+      triggers.push(videoTrig);
+    }
 
     gsap.utils.toArray('.particle').forEach((p) => {
       const trig = ScrollTrigger.create({
@@ -57,6 +71,33 @@ export default function Hero() {
 
   return (
     <section className="hero" id="home" aria-label="Hero — The Flat White" ref={heroRef}>
+      {/* Background Video */}
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted={isMuted}
+        playsInline
+        className="hero__video-bg"
+        src="/hero.mp4"
+      />
+
+      {/* Unmute Toggle */}
+      <button 
+        className="hero__unmute-btn" 
+        onClick={() => setIsMuted(!isMuted)}
+        aria-label={isMuted ? "Unmute video" : "Mute video"}
+      >
+        {isMuted ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        )}
+      </button>
+
+      {/* Background Overlay */}
+      <div className="hero__video-overlay" aria-hidden="true"></div>
+
       {/* Ambient coffee bean particles */}
       <div className="hero__particles" aria-hidden="true">
         {[...Array(18)].map((_, i) => (

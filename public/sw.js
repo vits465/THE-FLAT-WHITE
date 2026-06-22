@@ -6,7 +6,10 @@ const ASSETS_TO_CACHE = [
   '/models/coffee_maker_low_poly_draco.glb',
   '/models/catoon_coffe_draco.glb',
   '/models/coffee_cup_with_plate_opt.glb',
-  '/models/latte_art_opt.glb'
+  '/models/latte_art_opt.glb',
+  '/hero.mp4',
+  '/interior.mp4',
+  '/reference.mp4'
 ];
 
 self.addEventListener('install', (event) => {
@@ -36,8 +39,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // Cache-first strategy for 3D models and draco decoders
-  if (url.pathname.startsWith('/models/') || url.pathname.startsWith('/draco/')) {
+  // Cache-first strategy for 3D models, draco decoders, and videos
+  if (
+    url.pathname.startsWith('/models/') || 
+    url.pathname.startsWith('/draco/') || 
+    url.pathname.endsWith('.mp4')
+  ) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         if (cachedResponse) {

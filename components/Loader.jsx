@@ -11,6 +11,14 @@ export default function Loader() {
 
   useEffect(() => {
     const mainEl = document.querySelector('main');
+    const hasLoaded = sessionStorage.getItem('flatWhiteLoaded');
+
+    if (hasLoaded) {
+      if (loaderRef.current) loaderRef.current.style.display = 'none';
+      if (mainEl) mainEl.style.opacity = 1;
+      document.body.style.overflow = 'auto';
+      return;
+    }
 
     const ctx = gsap.context(() => {
       const fragments = document.querySelectorAll('.loader__frag');
@@ -28,6 +36,7 @@ export default function Loader() {
           if (loaderRef.current) loaderRef.current.style.display = 'none';
           document.body.style.overflow = 'auto';
           ScrollTrigger.refresh();
+          sessionStorage.setItem('flatWhiteLoaded', 'true');
         },
       });
 
@@ -65,6 +74,17 @@ export default function Loader() {
 
   return (
     <div id="loader" ref={loaderRef} role="status" aria-label="Loading The Flat White">
+      {/* Background Video for Preloader */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+        src="/hero.mp4"
+      />
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(8px)', zIndex: 0 }}></div>
+
       <div className="loader__cream-bg" id="loaderCreamBg"></div>
 
       <div className="loader__logo-wrap" id="loaderLogo">

@@ -7,8 +7,9 @@ import Hero from '@/components/Hero';
 import Showcase from '@/components/Showcase';
 import Footer from '@/components/Footer';
 import Animations from '@/components/Animations';
-import ShowcaseModel from '@/components/canvas/ShowcaseModel';
+import Gallery from '@/components/Gallery';
 import FaqAccordion from '@/components/FaqAccordion';
+import Quiz from '@/components/Quiz';
 import shopInside from '@/img/shop_inside.jpg';
 
 export default function Home() {
@@ -44,6 +45,12 @@ export default function Home() {
       el.addEventListener('mouseleave', () => cursor.classList.remove('cursor--active'));
     });
 
+    const videos = document.querySelectorAll('.about__image-mask, .secret-sauce__cup');
+    videos.forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('cursor--video'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('cursor--video'));
+    });
+
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       cancelAnimationFrame(animId);
@@ -60,6 +67,7 @@ export default function Home() {
       <div className="cursor" id="cursor" aria-hidden="true">
         <div className="cursor__dot"></div>
         <div className="cursor__ring"></div>
+        <div className="cursor__text">VIEW</div>
       </div>
 
       <Nav />
@@ -114,9 +122,16 @@ export default function Home() {
         <section className="about" id="about" aria-label="Our story">
           <div className="section-bg-text" aria-hidden="true">STORY</div>
           <div className="about__grid">
-            <div className="about__image-wrap" style={{ minHeight: '600px', position: 'relative' }}>
-              <div className="about__image-mask" id="aboutImageMask" style={{ width: '100%', height: '600px', position: 'relative', background: '#F8F6F2', borderRadius: 'var(--radius-xl)' }}>
-                <ShowcaseModel modelUrl="/models/coffee_maker_low_poly_draco.glb" scaleAdjust={0.8} yOffset={-0.2} />
+            <div className="about__image-wrap">
+              <div className="about__image-mask" id="aboutImageMask">
+                <video 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  src="/interior.mp4" 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
               </div>
               <div className="about__image-deco" aria-hidden="true"></div>
               <div className="about__image-stat" aria-hidden="true">
@@ -158,8 +173,15 @@ export default function Home() {
         <section className="secret-sauce" id="secretSauce" aria-label="Our secret sauce">
           <div className="secret-sauce__bg-text" aria-hidden="true">SECRET</div>
           <div className="secret-sauce__inner">
-            <div className="secret-sauce__cup" id="sauceCup" style={{ height: '480px', position: 'relative', background: '#F8F6F2', borderRadius: 'var(--radius-xl)', overflow: 'hidden' }}>
-              <ShowcaseModel modelUrl="/models/canarian_cafe_-_coffee_machine_draco.glb" scaleAdjust={0.7} yOffset={-0.1} />
+            <div className="secret-sauce__cup" id="sauceCup">
+              <video 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                src="/reference.mp4" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
               <div className="secret-sauce__label">Secret Sauce ✦</div>
             </div>
             <div className="secret-sauce__content">
@@ -183,6 +205,12 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* QUIZ */}
+        <Quiz />
+
+        {/* GALLERY */}
+        <Gallery />
 
         {/* MENU */}
         <section className="menu" id="menu" aria-label="Our specialties menu">
