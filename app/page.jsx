@@ -11,8 +11,11 @@ import Gallery from '@/components/Gallery';
 import FaqAccordion from '@/components/FaqAccordion';
 import Quiz from '@/components/Quiz';
 import shopInside from '@/img/shop_inside.jpg';
+import { useDeviceTier } from '@/components/hooks/useDeviceTier';
 
 export default function Home() {
+  const tier = useDeviceTier();
+
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
@@ -125,10 +128,12 @@ export default function Home() {
             <div className="about__image-wrap">
               <div className="about__image-mask" id="aboutImageMask">
                 <video 
-                  autoPlay 
+                  autoPlay={tier !== 'low'} 
                   loop 
                   muted 
                   playsInline 
+                  preload="none"
+                  poster="/img/video_poster.jpg"
                   src="/interior.mp4" 
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 />
@@ -175,10 +180,12 @@ export default function Home() {
           <div className="secret-sauce__inner">
             <div className="secret-sauce__cup" id="sauceCup">
               <video 
-                autoPlay 
+                autoPlay={tier !== 'low'} 
                 loop 
                 muted 
                 playsInline 
+                preload="none"
+                poster="/img/video_poster.jpg"
                 src="/reference.mp4" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />

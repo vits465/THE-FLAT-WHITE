@@ -81,10 +81,12 @@ export default function Hero() {
       {/* Background Video */}
       <video
         ref={videoRef}
-        autoPlay
+        autoPlay={tier !== 'low'}
         loop
         muted={isMuted}
         playsInline
+        preload="none"
+        poster="/img/video_poster.jpg"
         className="hero__video-bg"
         src="/hero.mp4"
       />
