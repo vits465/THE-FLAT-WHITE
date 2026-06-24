@@ -4,10 +4,13 @@ import { useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import VanillaTilt from 'vanilla-tilt';
+import { useDeviceTier } from './hooks/useDeviceTier';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function Animations() {
+  const tier = useDeviceTier();
+
   useEffect(() => {
     let ctx = gsap.context(() => {
       /* ── Reveal helper ── */
@@ -23,12 +26,14 @@ export default function Animations() {
       };
 
       /* ── Parallax bg texts ── */
-      gsap.utils.toArray('.section-bg-text').forEach((el) => {
-        gsap.to(el, {
-          y: '-18%', ease: 'none',
-          scrollTrigger: { trigger: el.closest('section'), start: 'top bottom', end: 'bottom top', scrub: 1.8 },
+      if (tier !== 'low') {
+        gsap.utils.toArray('.section-bg-text').forEach((el) => {
+          gsap.to(el, {
+            y: '-18%', ease: 'none',
+            scrollTrigger: { trigger: el.closest('section'), start: 'top bottom', end: 'bottom top', scrub: 1.8 },
+          });
         });
-      });
+      }
 
       /* ── About ── */
       ScrollTrigger.create({
@@ -63,7 +68,7 @@ export default function Animations() {
       gsap.fromTo('.contact__info-block', { x: 50, opacity: 0 }, { x: 0, opacity: 1, duration: 0.75, stagger: 0.12, ease: 'power2.out', scrollTrigger: { trigger: '.contact__grid', start: 'top 80%' } });
 
       /* ── Footer Reveal ── */
-      if (document.querySelector('.footer__inner')) {
+      if (document.querySelector('.footer__inner') && tier !== 'low') {
         gsap.fromTo('.footer__inner',
           { yPercent: -40, opacity: 0.5 },
           { yPercent: 0, opacity: 1, ease: 'none', scrollTrigger: { trigger: '.footer', start: 'top bottom', end: 'bottom bottom', scrub: true } }
@@ -82,12 +87,16 @@ export default function Animations() {
 
     /* ── Magnetic Buttons ── */
     const magnets = document.querySelectorAll('.btn--magnetic');
+    let rafId = null;
     const handleMouseMove = (e) => {
       const btn = e.currentTarget;
       const rect = btn.getBoundingClientRect();
       const dx = e.clientX - rect.left - rect.width / 2;
       const dy = e.clientY - rect.top  - rect.height / 2;
-      gsap.to(btn, { x: Math.max(-16, Math.min(16, dx * 0.3)), y: Math.max(-16, Math.min(16, dy * 0.3)), duration: 0.25, ease: 'power2.out', overwrite: 'auto' });
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        gsap.to(btn, { x: Math.max(-16, Math.min(16, dx * 0.3)), y: Math.max(-16, Math.min(16, dy * 0.3)), duration: 0.25, ease: 'power2.out', overwrite: 'auto' });
+      });
     };
     const handleMouseLeave = (e) => {
       gsap.to(e.currentTarget, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)', overwrite: 'auto' });
@@ -100,7 +109,7 @@ export default function Animations() {
     /* ── Vanilla Tilt ── */
     try {
       const cards = document.querySelectorAll('.menu-card');
-      if (cards.length > 0) {
+      if (cards.length > 0 && tier !== 'low') {
         VanillaTilt.init(cards, { max: 10, speed: 400, glare: true, 'max-glare': 0.18, scale: 1.02 });
       }
     } catch (e) { console.error('VanillaTilt error:', e); }
@@ -108,7 +117,7 @@ export default function Animations() {
     /* ── Parallax band ── */
     const track = document.getElementById('parallaxTrack');
     let parallaxReqId;
-    if (track) {
+    if (track && tier !== 'low') {
       let offset = 0;
       const animate = () => {
         offset -= 0.4;
