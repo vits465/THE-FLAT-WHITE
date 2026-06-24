@@ -22,16 +22,9 @@ export default function Hero() {
   useEffect(() => {
     const triggers = [];
 
-    // Parallax for video
+    // Video Parallax removed to prevent cropping
     if (videoRef.current) {
-      const videoTrig = ScrollTrigger.create({
-        trigger: heroRef.current,
-        start: 'top top',
-        end: 'bottom top',
-        scrub: true,
-        animation: gsap.to(videoRef.current, { y: 150, ease: 'none' })
-      });
-      triggers.push(videoTrig);
+      // Just keep the ref, but don't animate it to avoid cropping
     }
 
     gsap.utils.toArray('.particle').forEach((p) => {
