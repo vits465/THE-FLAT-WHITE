@@ -74,6 +74,7 @@ function MiniSteam() {
 
   useFrame((state) => {
     if (!ptsRef.current) return;
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     const arr = ptsRef.current.geometry.attributes.position.array;
     for (let i = 0; i < COUNT; i++) {
@@ -183,11 +184,16 @@ export default function ShowcaseModel({ modelUrl, scaleAdjust = 1.0, yOffset = 0
       {inView && (
         <Canvas
           dpr={[1, 1.5]}
+          frameloop="demand"
+          performance={{ min: 0.5 }}
           camera={{ position: [0, 1.2, 4.8], fov: 36 }}
           shadows={{ type: 'PCFSoftShadowMap' }}
           gl={{
-            antialias: true,
+            antialias: false,
+            powerPreference: "high-performance",
             alpha: true,
+            stencil: false,
+            depth: true,
             toneMappingExposure: 1.4,
             outputColorSpace: 'srgb',
             toneMapping: THREE.ACESFilmicToneMapping,
@@ -230,6 +236,11 @@ export default function ShowcaseModel({ modelUrl, scaleAdjust = 1.0, yOffset = 0
             target={[0, 0, 0]}
             minPolarAngle={Math.PI * 0.2}
             maxPolarAngle={Math.PI * 0.7}
+            onChange={(e) => {
+              if (e && e.target && e.target.context && e.target.context.invalidate) {
+                e.target.context.invalidate();
+              }
+            }}
           />
         </Canvas>
       )}

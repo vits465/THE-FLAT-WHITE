@@ -653,11 +653,16 @@ export default function ScrollCanvas() {
     <div className="persistent-canvas-container">
       <Canvas
         dpr={[1, 1.5]}
+        frameloop="always"
+        performance={{ min: 0.5 }}
         camera={{ position: [0, 1.2, 5.5], fov: 42 }}
         shadows={{ type: 'PCFSoftShadowMap' }}
         gl={{
-          antialias: true,
+          antialias: false,
+          powerPreference: "high-performance",
           alpha: true,
+          stencil: false,
+          depth: true,
           toneMappingExposure: 1.35,
           outputColorSpace: 'srgb',
           toneMapping: THREE.ACESFilmicToneMapping,

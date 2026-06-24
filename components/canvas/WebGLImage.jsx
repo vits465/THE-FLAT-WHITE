@@ -65,6 +65,7 @@ function ImageMesh({ url }) {
   const [hovered, setHovered] = useState(false);
   
   useFrame((state) => {
+    state.invalidate(); // perf: invalidate on animation tween
     if (materialRef.current) {
       materialRef.current.uTime = state.clock.elapsedTime;
       // Smoothly interpolate the hover state
@@ -111,7 +112,19 @@ export default function WebGLImage({ src, alt }) {
       
       {/* WebGL Canvas Overlay covering the exact dimensions of the image */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-        <Canvas camera={{ position: [0, 0, 1] }}>
+        <Canvas
+          dpr={[1, 1.5]}
+          frameloop="demand"
+          performance={{ min: 0.5 }}
+          camera={{ position: [0, 0, 1] }}
+          gl={{
+            antialias: false,
+            powerPreference: "high-performance",
+            alpha: true,
+            stencil: false,
+            depth: true,
+          }}
+        >
           <Suspense fallback={null}>
             <ImageMesh url={src} />
           </Suspense>

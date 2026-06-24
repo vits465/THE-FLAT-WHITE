@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import WebGLImage from './canvas/WebGLImage';
+
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -75,24 +75,42 @@ export default function Gallery() {
       <div className="gallery__grid">
         <div className="gallery__col gallery__col--1">
           {images.slice(0, 3).map((src, i) => (
-            <div key={`col1-${i}`} className="gallery__img-wrap cursor--video">
-              <WebGLImage src={src} alt="Cafe view" />
+            <div key={`col1-${i}`} className="gallery__img-wrap gallery-item cursor--video">
+              <img
+                src={src}
+                alt="Cafe view"
+                loading="lazy"
+                decoding="async"
+                className="gallery-img"
+              />
             </div>
           ))}
         </div>
         
         <div className="gallery__col gallery__col--2">
           {images.slice(3, 6).map((src, i) => (
-            <div key={`col2-${i}`} className="gallery__img-wrap cursor--video">
-              <WebGLImage src={src} alt="Cafe view" />
+            <div key={`col2-${i}`} className="gallery__img-wrap gallery-item cursor--video">
+              <img
+                src={src}
+                alt="Cafe view"
+                loading="lazy"
+                decoding="async"
+                className="gallery-img"
+              />
             </div>
           ))}
         </div>
 
         <div className="gallery__col gallery__col--3">
           {images.slice(6, 9).map((src, i) => (
-            <div key={`col3-${i}`} className="gallery__img-wrap cursor--video">
-              <WebGLImage src={src} alt="Cafe view" />
+            <div key={`col3-${i}`} className="gallery__img-wrap gallery-item cursor--video">
+              <img
+                src={src}
+                alt="Cafe view"
+                loading="lazy"
+                decoding="async"
+                className="gallery-img"
+              />
             </div>
           ))}
         </div>

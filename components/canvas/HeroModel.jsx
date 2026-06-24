@@ -59,6 +59,7 @@ function CoffeeLiquid() {
   const rippleRef = useRef(0);
 
   useFrame((state) => {
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     rippleRef.current = t;
     if (liquidRef.current?.material) {
@@ -85,6 +86,7 @@ function CoffeeLiquid() {
 function LatteArt() {
   const foamRef = useRef(null);
   useFrame((state) => {
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     if (foamRef.current) foamRef.current.rotation.z = Math.sin(t * 0.3) * 0.02;
   });
@@ -140,6 +142,7 @@ function SteamParticles() {
 
   useFrame((state) => {
     if (!ptsRef.current) return;
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     const arr = ptsRef.current.geometry.attributes.position.array;
     for (let i = 0; i < COUNT; i++) {
@@ -196,6 +199,7 @@ function OrbitingBeans() {
   const anglesRef = useRef(beanDefs.map(b => b.a));
 
   useFrame((state) => {
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     beanDefs.forEach((b, i) => {
       const g = beansRef.current[i];
@@ -283,6 +287,7 @@ function Spoon() {
 function CausticGround() {
   const ringRef = useRef(null);
   useFrame((state) => {
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     if (ringRef.current) {
       ringRef.current.material.opacity = 0.06 + Math.sin(t * 0.8) * 0.02;
@@ -300,6 +305,7 @@ function CausticGround() {
 function SceneContent({ onLoad }) {
   const groupRef = useRef(null);
   useFrame((state) => {
+    state.invalidate(); // perf: invalidate on animation tween
     const t = state.clock.getElapsedTime();
     if (groupRef.current) {
       groupRef.current.position.y = -0.45 + Math.sin(t * 0.7) * 0.06;
@@ -381,11 +387,16 @@ export default function HeroModel() {
       {shouldRender && (
         <Canvas
           dpr={[1, 1.5]}
+          frameloop="demand"
+          performance={{ min: 0.5 }}
           camera={{ position: [0, 1.5, 5.8], fov: 40 }}
           shadows={{ type: 'PCFSoftShadowMap' }}
           gl={{
-            antialias: true,
+            antialias: false,
+            powerPreference: "high-performance",
             alpha: true,
+            stencil: false,
+            depth: true,
             toneMappingExposure: 1.35,
             outputColorSpace: 'srgb',
             toneMapping: THREE.ACESFilmicToneMapping,
@@ -438,6 +449,11 @@ export default function HeroModel() {
             target={[0, 0.2, 0]}
             minPolarAngle={Math.PI * 0.25}
             maxPolarAngle={Math.PI * 0.65}
+            onChange={(e) => {
+              if (e && e.target && e.target.context && e.target.context.invalidate) {
+                e.target.context.invalidate();
+              }
+            }}
           />
         </Canvas>
       )}
