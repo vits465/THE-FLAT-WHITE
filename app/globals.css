@@ -464,7 +464,7 @@ ul, ol { list-style: none; }
 .hero__video-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.75) 50%, rgba(255, 255, 255, 1) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.35) 60%, rgba(255, 255, 255, 1) 100%);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
   z-index: 0;
