@@ -2020,9 +2020,12 @@ main {
   .about__image-mask { height: 38rem; }
   .about__image-wrap { min-height: 38rem; }
   .secret-sauce__cup { height: 32rem; }
-  .footer__content { grid-template-columns: 1fr; gap: var(--space-lg); }
+  .footer__content { grid-template-columns: 1fr; gap: var(--space-xl); text-align: center; justify-items: center; }
+  .footer__brand-col, .footer__links, .footer__social-col { align-items: center; }
+  .footer__brand { justify-content: center; }
+  .footer__tagline { margin: 0 auto; text-align: center; }
   .footer__bottom { flex-direction: column; text-align: center; gap: var(--space-sm); }
-  .footer__huge-text { font-size: 14.5vw; }
+  .footer__huge-text { font-size: 14.5vw; text-align: center; }
   .menu__grid { grid-template-columns: 1fr; }
   .showcase__grid { grid-template-columns: 1fr; }
   .gallery__grid { flex-direction: column; }
