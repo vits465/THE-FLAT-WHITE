@@ -2034,7 +2034,6 @@ main {
   
   /* Header Mobile Optimizations */
   .nav__cta { display: none; }
-  .nav__logo span { display: none; }
   
   .nav__links {
       position: fixed;
@@ -2065,7 +2064,7 @@ main {
       padding: 1rem 2rem;
     }
     .nav__link::before { display: none; }
-    .nav__toggle { display: flex; z-index: 100; }
+    .nav__toggle { display: flex; position: relative; z-index: 100; }
   .secret-sauce__stats { gap: var(--space-md); }
 }
 
