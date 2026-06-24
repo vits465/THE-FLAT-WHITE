@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import HeroModel from './canvas/HeroModel';
+import dynamic from 'next/dynamic';
+import { useDeviceTier } from './hooks/useDeviceTier';
+
+const HeroModel = dynamic(() => import('./canvas/HeroModel'), { 
+  ssr: false, 
+  loading: () => null 
+});
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,6 +17,7 @@ export default function Hero() {
   const heroRef = useRef(null);
   const videoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
+  const tier = useDeviceTier();
 
   useEffect(() => {
     const triggers = [];
@@ -143,7 +150,7 @@ export default function Hero() {
 
         <div className="hero__visual hero__visual--3d" id="heroVisual">
           <div className="hero__canvas-wrap" style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <HeroModel />
+            {tier !== 'low' && <HeroModel />}
           </div>
           <div className="hero__model-tag" id="modelTag">
             <span className="hero__model-tag-dot"></span>

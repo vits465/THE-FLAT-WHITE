@@ -1,6 +1,16 @@
-import ShowcaseModel from './canvas/ShowcaseModel';
+import dynamic from 'next/dynamic';
+import { useDeviceTier } from './hooks/useDeviceTier';
+import { useInView } from './hooks/useInView';
+
+const ShowcaseModel = dynamic(() => import('./canvas/ShowcaseModel'), { 
+  ssr: false, 
+  loading: () => null 
+});
 
 export default function Showcase() {
+  const tier = useDeviceTier();
+  const [showcaseRef, showcaseInView] = useInView("300px");
+
   const items = [
     {
       modelUrl: '/models/catoon_coffe_draco.glb',
@@ -39,7 +49,7 @@ export default function Showcase() {
   ];
 
   return (
-    <section className="showcase" id="showcase" aria-label="3D Coffee Showcase">
+    <section ref={showcaseRef} className="showcase" id="showcase" aria-label="3D Coffee Showcase">
       <div className="section-bg-text" aria-hidden="true">3D</div>
 
       <div className="showcase__header">
@@ -58,7 +68,12 @@ export default function Showcase() {
             aria-label={`${item.name} 3D model`}
           >
             <div className="showcase-card__viewer showcase-card__viewer--local">
-              <ShowcaseModel modelUrl={item.modelUrl} scaleAdjust={item.scaleAdjust} yOffset={item.yOffset} />
+              {showcaseInView && tier !== "low" && (
+                <ShowcaseModel modelUrl={item.modelUrl} scaleAdjust={item.scaleAdjust} yOffset={item.yOffset} />
+              )}
+              {(!showcaseInView || tier === "low") && (
+                <img src="/img/showcase_poster.jpg" alt="" className="poster-fallback" />
+              )}
               <div className="showcase-card__overlay" aria-hidden="true"></div>
             </div>
             <div className="showcase-card__body">
